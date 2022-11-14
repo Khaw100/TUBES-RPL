@@ -35,7 +35,7 @@ class connector():
         self._connection.close()
         self._session.close()
 
-    def selectToDoList(self):
+    def allToDoList(self):
         statement = "SELECT * FROM Kegiatan"
         try:
             self._session.execute(statement)
@@ -44,21 +44,38 @@ class connector():
             print("Failed!")
         return data
 
-    def updateStatus(self):
-        result = self._session.execute("UPDATE Kegiatan SET status = 'ongoing'")
-        return result
+    def updateStatusOnGOing(self, activityID):
+        statement = f"UPDATE Kegiatan SET status = 'ongoing' WHERE = {activityID}"
+        try:
+            self._session.execute(statement)
+            self._connection.commit()
+        except:
+            print("Failed!")
 
-    def autoUpdateStatus(self):
-        result = self._session.execute("UPDATE Kegiatan SET status = 'expired'")
-        return result
+    def autoUpdateStatusExpired(self, activityID):
+        statement = f"UPDATE Kegiatan SET status = 'expired' WHERE idKegiatan = {activityID}"
+        try:
+            self._session.execute(statement)
+            self._connection.commit()
+        except:
+            print("Failed!")
     
     def addActivity(self, activityID, name, status, deadline, categoryID):
-        result = self._session.execute("INSERT INTO Kegiatan (idKegiatan, namaKegiatan, jenisStatus, batasWaktu, idKategori) VALUES (?, ?, ?, ?, ?)", (activityID, name, status, deadline, categoryID))
-        return result
+        statement = f"INSERT INTO Kegiatan (idKegiatan, namaKegiatan, jenisStatus, batasWaktu, idKategori) VALUES ({activityID}, '{name}', '{status}', '{deadline}', {categoryID})"
+        try:
+            self._session.execute(statement)
+            self._connection.commit()
+        except:
+            print("Failed!")
 
     def deleteKegiatan(self, activityID):
-        result = self._sessionr.execute("DELETE FROM Kegiatan WHERE idKegiatan = ?", (activityID))
-        return result
+        statement = f"DELETE FROM Kegiatan WHERE idKegiatan = {activityID}"
+        try:
+            self._session.execute(statement)
+            self._connection.commit()
+        except:
+            print("Failed!")
+    
 
     def filterKategori(self, selectedIDKategori):
         statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan INNER JOIN Kategori WHERE idKategori = '{selectedIDKategori}'"
@@ -92,16 +109,46 @@ class connector():
             print("Failed!")
         return data
 
+
+# DRIVER CODE ----------------------------------------------------------------
+## Initialization
 cn1 = connector("localhost", "wipiii", "miscrit10", "rpl")
 cn1.openConnection()
+
+## Add Activity --------------------------------------------------------------
+# cn1.addActivity(1,"Futsal", "ongoing", "2020--10",1)
+a = cn1.allToDoList()
+print(a)
+
+## Del Activity --------------------------------------------------------------
+cn1.deleteKegiatan(1)
+b = cn1.allToDoList()
+print(b)
+
+
+
+
+
+
+
+
+# cn1.showToDoList()
+# a = "'Expired'"
+# cn1._session.execute(f"SELECT * FROM Kegiatan WHERE jenisStatus = {a}")
+
+# a = cn1._session.fetchall()
+# print(a)
+# print(type(a[0][2]))
+
+# print(a[0][2].year)
+
+print("-----------------------------")
+# query = f"DELETE FROM Kegiatan WHERE idKegiatan = 1"
+# cn1._session.execute(query)
+# cn1._connection.commit()
 # cn1.selectToDoList()
-a = "'Expired'"
-cn1._session.execute(f"SELECT * FROM Kegiatan WHERE jenisStatus = {a}")
-
-a = cn1._session.fetchall()
-print(type(a[0][2]))
-
-print(a[0][2].year)
+# a = cn1._session.fetchall()
+# print(a)
 
 
 # cn1.filterStatus(a)
