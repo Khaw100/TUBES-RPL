@@ -27,8 +27,14 @@ class dashboardPage(tk.Frame):
         self.status = StringVar()
 
 
+        #========================#==============#========#
         self.listCategory = [] 
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
 
+        a = self.dbconnector.allCategory()
+        for i in range (len(a)):
+            self.listCategory.append(a[i][1])
         #=========================================================================FRAME=====================================================================================#
         # Central Frame
         self.centralframe = Frame(self, background="white")
@@ -48,7 +54,7 @@ class dashboardPage(tk.Frame):
 
         #=========================================================================BUTTON==================================================================================#
         
-        self.buttonDelete = Button(self.buttonFrame, text= "Delete", width=23, height =2, padx =2)
+        self.buttonDelete = Button(self.buttonFrame, text= "Delete", command= self.deleteToDoList, width=23, height =2, padx =2)
         self.buttonDelete.pack(side = RIGHT, padx = 15)
 
         self.buttonFilter = Button(self.buttonFrame, text = "Filter", command= self.popUpFilter, width=23, height =2, padx =2)
@@ -62,7 +68,7 @@ class dashboardPage(tk.Frame):
 
         #===========================================================================TABLE==================================================================================#
         scroll_y = ttk.Scrollbar(self.tableframe, orient=VERTICAL)
-        self.todolistTable = ttk.Treeview(self.tableframe, columns=(1,2,3,4,5), show="headings", height="24", yscrollcommand=scroll_y.set)
+        self.todolistTable = ttk.Treeview(self.tableframe, columns=(1,2,3,4,5), show="headings", height="24", yscrollcommand=scroll_y.set, selectmode=BROWSE)
         scroll_y.pack(side=RIGHT, fill = Y)
         scroll_y = ttk.Scrollbar(command=self.todolistTable.yview)
         self.todolistTable.column(1, minwidth=0, width =0, stretch=NO)
@@ -80,15 +86,39 @@ class dashboardPage(tk.Frame):
         # bou = tk.Button(self, text="to next page", command= lambda: controller.up_frame("PageOne"))
         # bou.pack()
 
-        self.fetchTodayData()
+        self.fetchAllData()
 
     #========================================================================OTHER FUNCTION==========================================================================#
-    def fetchTodayData(self):
-        self.todolistTable.delete()
+    def fetchAllData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
         self.dbconnector = connector("localhost", "root", "password", "rpl")
         self.dbconnector.openConnection()
         todayData = self.dbconnector.allToDoList()
         for row in todayData:
+            self.todolistTable.insert('', END, values=row)
+
+    def fetchTodayData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        todayData = self.dbconnector.todayToDoList()
+        for row in todayData:
+            self.todolistTable.insert('', END, values=row)
+    
+    def fetchStatusData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        statusData = self.dbconnector.filterStatus(self.status.get())
+        for row in statusData:
+            self.todolistTable.insert('', END, values=row)
+
+    def fetchCategoryData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        categoryData = self.dbconnector.filterKategori(self.categoryName.get())
+        for row in categoryData:
             self.todolistTable.insert('', END, values=row)
 
     def tambahKegiatan(self):
@@ -103,11 +133,14 @@ class dashboardPage(tk.Frame):
                 for i in range(len(self.listCategory)):
                     if self.categoryName == self.listCategory[i][1]:
                         self.categoryID = self.listCategory[i][0]
+                print("categoryID:", self.categoryID.get())
                 self.dbconnector.addActivity(actID, self.activityName.get(), self.status.get(), self.deadline.get(), self.categoryID.get())
         except:
             messagebox.showerror("Error", "Error Occured")
+        self.fetchAllData()
         self.activityName.set("")
         self.categoryID.set("")
+        self.categoryName.set("")
         self.status.set("")
         self.deadline.set("")
         self.popUp.destroy()
@@ -120,35 +153,43 @@ class dashboardPage(tk.Frame):
                 self.dbconnector = connector("localhost", "root", "password", "rpl")
                 self.dbconnector.openConnection()
                 data = self.dbconnector.allCategory()
-                catID = len(data)+1
+                catID = len(data)
+                print(catID)
                 self.dbconnector.addCategory(catID, self.categoryName.get())
         except:
             messagebox.showerror("Error", "Error Occured")
-        self.listCategory.append(self.categoryName.get())
-        print(self.listCategory)
+        # self.listCategory.append(self.categoryName.get())
         self.categoryName.set("")
         self.popUp.destroy()
 
     def filterToDoList(self):
         try:
             if self.status.get() != "" and self.categoryName.get() == "":
-                self.dbconnector = connector("localhost", "root", "password", "rpl")
-                self.dbconnector.openConnection()
-                data = self.dbconnector.filterStatus()
-                for row in data:
-                    self.todolistTable.insert('', END, values=row)
+                self.fetchStatusData()
             elif self.status.get() == "" and self.categoryName.get() != "":
-                self.dbconnector = connector("localhost", "root", "password", "rpl")
-                self.dbconnector.openConnection()
-                data = self.dbconnector.filterKategori()
-                for row in data:
-                    self.todolistTable.insert('', END, values=row)
+                self.fetchCategoryData()
         except:
             messagebox.showerror("Error", "Error Occured")
+
+    def deleteToDoList(self):
+        try:
+            selected_activity = self.todolistTable.focus()
+            details = self.todolistTable.item(selected_activity)
+            if details != '':
+                self.dbconnector = connector("localhost", "root", "password", "rpl")
+                self.dbconnector.openConnection()
+                self.dbconnector.deleteKegiatan(details['values'][0])
+        except: 
+            messagebox.showerror("Error", "Error Occured")
+        self.fetchAllData()
+
+        for item in self.todolistTable.selection():
+            self.todolistTable.selection_remove(item)
 
     def clearEntry(self):
         self.activityName.set("")
         self.categoryID.set("")
+        self.categoryName.set("")
         self.status.set("")
         self.deadline.set("")
 
@@ -183,7 +224,7 @@ class dashboardPage(tk.Frame):
 
         # Category
         self.labelCategory= Label(self.popupFrame, text="Kategori", font= self.controller.titlefont, padx=5)
-        self.categoryBox = ttk.Combobox(self.popupFrame, values=['Olahraga'], textvariable=self.categoryName, width = 30)
+        self.categoryBox = ttk.Combobox(self.popupFrame, values=self.listCategory, textvariable=self.categoryName, width = 30)
         self.labelSpacing3 = Label(self.popupFrame)
 
         # Deadline
@@ -194,7 +235,7 @@ class dashboardPage(tk.Frame):
 
         # Status
         self.labelStatus= Label(self.popupFrame, text="Status", font= self.controller.titlefont, padx=5)
-        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired'], textvariable=self.status, width = 30)
+        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired', 'done'], textvariable=self.status, width = 30)
         self.labelSpacing5 = Label(self.popupFrame)
 
         # Button
@@ -289,11 +330,14 @@ class dashboardPage(tk.Frame):
         self.labelSpacing = Label(self.popupFrame)
         self.labelSpacing1 = Label(self.popupFrame)
         self.labelStatus= Label(self.popupFrame, text="Status", font= self.controller.titlefont, padx=5)
-        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired'], textvariable=self.status, width = 30)
+        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired', 'done'], textvariable=self.status, width = 30)
         self.labelSpacing2 = Label(self.popupFrame)
         self.labelKategori= Label(self.popupFrame, text="Kategori", font= self.controller.titlefont, padx=5)
         self.kategoriBox = ttk.Combobox(self.popupFrame, values=self.listCategory, textvariable=self.categoryName, width = 30)
         self.labelSpacing3 = Label(self.popupFrame)
+        self.labelBatasWaktu= Label(self.popupFrame, text="BatasWaktu", font= self.controller.titlefont, padx=5)
+        self.deadlineBox = ttk.Combobox(self.popupFrame, values=['HariIni'], textvariable=self.deadline, width = 30)
+        self.labelSpacing4 = Label(self.popupFrame)
         self.submitButton = Button(self.popupFrame, text="Kirim", command=self.filterToDoList)
         
         #===========POSITIONING=====================#
@@ -306,6 +350,9 @@ class dashboardPage(tk.Frame):
         self.labelKategori.pack(side=TOP)
         self.kategoriBox.pack(side=TOP, expand=True)
         self.labelSpacing3.pack(side =TOP)
+        self.labelBatasWaktu.pack(side=TOP)
+        self.deadlineBox.pack(side=TOP, expand=True)
+        self.labelSpacing4.pack(side =TOP)
         self.submitButton.pack(side=TOP, expand=True)
 
 
