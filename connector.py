@@ -36,13 +36,23 @@ class connector():
         self._session.close()
 
     def allToDoList(self):
-        statement = "SELECT * FROM Kegiatan"
+        statement = "SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan INNER JOIN Kategori"
+        try:
+            self._session.execute(statement)
+            data = self._session.fetchall()
+        except:
+            print("Failed! 1")
+        return data
+
+    def allCategory(self):
+        statement = "SELECT * FROM Kategori"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
         except:
             print("Failed!")
         return data
+
 
     def updateStatusOnGOing(self, activityID):
         statement = f"UPDATE Kegiatan SET status = 'ongoing' WHERE = {activityID}"
@@ -109,19 +119,24 @@ class connector():
             print("Failed!")
         return data
 
-    def addCategory(self):
-        
+    def addCategory(self, categoryID, namaKategori):
+        statement = f"INSERT INTO Kategori (idKategori, jenisKategori) VALUES ({categoryID}, '{namaKategori}')"
+        try:
+            self._session.execute(statement)
+            self._connection.commit()
+        except:
+            print("Failed!")
         pass
 
 # DRIVER CODE ----------------------------------------------------------------
 ## Initialization
-cn1 = connector("localhost", "wipiii", "miscrit10", "rpl")
+cn1 = connector("localhost", "root", "password", "rpl")
 cn1.openConnection()
 
 ## Add Activity --------------------------------------------------------------
 # cn1.addActivity(2,"Basket", "expired", "2020-1-10",1)
-a = cn1.allToDoList()
-print(a[0][4])
+a = cn1.allCategory()
+print(a)
 
 # print(len(a))
 

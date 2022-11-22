@@ -22,8 +22,12 @@ class dashboardPage(tk.Frame):
         self.activityID = IntVar()
         self.activityName = StringVar()
         self.categoryID = IntVar()
+        self.categoryName = StringVar()
         self.deadline = StringVar()
         self.status = StringVar()
+
+
+        self.listCategory = [] 
 
         #=========================================================================FRAME=====================================================================================#
         # Central Frame
@@ -42,20 +46,18 @@ class dashboardPage(tk.Frame):
         self.tableframe = Frame(self.centralframe, background="white", highlightbackground="black", highlightthickness=2)
         self.tableframe.pack(anch='center')
 
-        ## , highlightbackground="black", highlightthickness=2
-
         #=========================================================================BUTTON==================================================================================#
+        
+        self.buttonDelete = Button(self.buttonFrame, text= "Delete", width=23, height =2, padx =2)
+        self.buttonDelete.pack(side = RIGHT, padx = 15)
 
-        self.buttonFilter = Button(self.buttonFrame, text = "Filter", width=23, height =2, padx =2)
-        # self.buttonFilter.grid(row=0, column=2)
+        self.buttonFilter = Button(self.buttonFrame, text = "Filter", command= self.popUpFilter, width=23, height =2, padx =2)
         self.buttonFilter.pack(side = RIGHT, padx = 15)
 
         self.buttonTambahKategori = Button(self.buttonFrame, text = "+ Tambah Kategori", command= self.popupCategory,width=23, height =2, padx =2)
-        # self.buttonTambahKategori.grid(row=0, column=1)
         self.buttonTambahKategori.pack(side = RIGHT, padx = 15)
 
         self.buttonTambahKegiatan = Button(self.buttonFrame, text = "+ Tambah Kegiatan", command = self.popupActivity, width=23, height =2, padx =2)
-        # self.buttonTambahKegiatan.grid(row=0, column=9)
         self.buttonTambahKegiatan.pack(side = RIGHT, padx = 15)
 
         #===========================================================================TABLE==================================================================================#
@@ -83,7 +85,7 @@ class dashboardPage(tk.Frame):
     #========================================================================OTHER FUNCTION==========================================================================#
     def fetchTodayData(self):
         self.todolistTable.delete()
-        self.dbconnector = connector("localhost", "wipiii", "miscrit10", "rpl")
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
         self.dbconnector.openConnection()
         todayData = self.dbconnector.allToDoList()
         for row in todayData:
@@ -91,13 +93,16 @@ class dashboardPage(tk.Frame):
 
     def tambahKegiatan(self):
         try:
-            if self.activityName.get() == "" or self.deadline.get() == "":
+            if self.activityName.get() == "":
                 messagebox.showerror("Error","All fields are required")
             else:
-                self.dbconnector = connector("localhost", "wipiii", "miscrit10", "rpl")
+                self.dbconnector = connector("localhost", "root", "password", "rpl")
                 self.dbconnector.openConnection()
                 data = self.dbconnector.allToDoList()
                 actID = len(data)+1
+                for i in range(len(self.listCategory)):
+                    if self.categoryName == self.listCategory[i][1]:
+                        self.categoryID = self.listCategory[i][0]
                 self.dbconnector.addActivity(actID, self.activityName.get(), self.status.get(), self.deadline.get(), self.categoryID.get())
         except:
             messagebox.showerror("Error", "Error Occured")
@@ -105,29 +110,47 @@ class dashboardPage(tk.Frame):
         self.categoryID.set("")
         self.status.set("")
         self.deadline.set("")
-        self.todolistTable.destroy()
+        self.popUp.destroy()
 
     def tambahKategori(self):
         try:
-            if self.activityName.get() == "" or self.deadline.get() == "":
+            if self.categoryName.get() == "" :
                 messagebox.showerror("Error","All fields are required")
             else:
-                self.dbconnector = connector("localhost", "wipiii", "miscrit10", "rpl")
+                self.dbconnector = connector("localhost", "root", "password", "rpl")
                 self.dbconnector.openConnection()
-                data = self.dbconnector.allToDoList()
-                actID = len(data)+1
-                self.dbconnector.addActivity(actID, self.activityName.get(), self.status.get(), self.deadline.get(), self.categoryID.get())
+                data = self.dbconnector.allCategory()
+                catID = len(data)+1
+                self.dbconnector.addCategory(catID, self.categoryName.get())
         except:
             messagebox.showerror("Error", "Error Occured")
-        pass
+        self.listCategory.append(self.categoryName.get())
+        print(self.listCategory)
+        self.categoryName.set("")
+        self.popUp.destroy()
+
+    def filterToDoList(self):
+        try:
+            if self.status.get() != "" and self.categoryName.get() == "":
+                self.dbconnector = connector("localhost", "root", "password", "rpl")
+                self.dbconnector.openConnection()
+                data = self.dbconnector.filterStatus()
+                for row in data:
+                    self.todolistTable.insert('', END, values=row)
+            elif self.status.get() == "" and self.categoryName.get() != "":
+                self.dbconnector = connector("localhost", "root", "password", "rpl")
+                self.dbconnector.openConnection()
+                data = self.dbconnector.filterKategori()
+                for row in data:
+                    self.todolistTable.insert('', END, values=row)
+        except:
+            messagebox.showerror("Error", "Error Occured")
 
     def clearEntry(self):
         self.activityName.set("")
         self.categoryID.set("")
         self.status.set("")
         self.deadline.set("")
-
-
 
     def popupActivity(self):
 
@@ -147,33 +170,63 @@ class dashboardPage(tk.Frame):
 
         self.popupFrame = Frame(self.popUp, highlightbackground="black", highlightthickness=2)
         self.popupFrame.pack(ipadx=50, ipady=50, pady=50)
+        #+##+#+#+#+
+
+        self.labelTitle = Label(self.popupFrame, text = "Tambah Kegiatan", font=self.popupFont)
+        self.labelSpacing = Label(self.popupFrame)
+        self.labelSpacing1 = Label(self.popupFrame)
+
+        # Activity
+        self.labelActivity= Label(self.popupFrame, text="Nama Kegiatan", font= self.controller.titlefont, padx=5)
+        self.activityBox = Entry(self.popupFrame, textvariable=self.activityName, width= 30)
+        self.labelSpacing2 = Label(self.popupFrame)
+
+        # Category
+        self.labelCategory= Label(self.popupFrame, text="Kategori", font= self.controller.titlefont, padx=5)
+        self.categoryBox = ttk.Combobox(self.popupFrame, values=['Olahraga'], textvariable=self.categoryName, width = 30)
+        self.labelSpacing3 = Label(self.popupFrame)
+
+        # Deadline
+        self.labelDeadline= Label(self.popupFrame, text="Batas Waktu (YYYY-MM-DD)", font= self.controller.titlefont, padx=5)
+        self.deadlineBox = Entry(self.popupFrame, textvariable=self.deadline, width= 30)
+        self.labelSpacing4 = Label(self.popupFrame)
 
 
-        self.labelActivity = Label(self.popupFrame, text="Nama Kegiatan", padx=2, font= self.controller.titlefont, highlightbackground="black", highlightthickness=2)
-        self.labelActivity.grid(row=0, column=0, sticky=W)
-        self.activityBox = Entry(self.popupFrame, textvariable=self.activityName)
-        self.activityBox.grid(row=0, column=1)
+        # Status
+        self.labelStatus= Label(self.popupFrame, text="Status", font= self.controller.titlefont, padx=5)
+        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired'], textvariable=self.status, width = 30)
+        self.labelSpacing5 = Label(self.popupFrame)
 
-        self.labelCategory = Label(self.popupFrame, text="Kategori     ", padx=2,font= self.controller.titlefont, highlightbackground="black", highlightthickness=2)
-        self.labelCategory.grid(row=1, column=0, sticky=W)
-        self.categoryBox = ttk.Combobox(self.popupFrame, values=[1,2,3,4], textvariable=self.categoryID, width=35)
-        self.categoryBox.grid(row=1, column=1)
+        # Button
+        self.submitButton = Button(self.popupFrame, text="Kirim", command=self.tambahKegiatan)
+        
+        # #===========POSITIONING=====================#
+        self.labelTitle.pack(side=TOP, anchor=CENTER)
+        self.labelSpacing.pack(side =TOP)
+        self.labelSpacing1.pack(side =TOP)
 
-        self.labelDeadline = Label(self.popupFrame, text="Batas Waktu  ", padx=2, font= self.controller.titlefont, highlightbackground="black", highlightthickness=2)
-        self.labelDeadline.grid(row=2, column=0, sticky=W)
-        self.deadlineBox = Entry(self.popupFrame, textvariable=self.deadline)
-        self.deadlineBox.grid(row=2, column=1)
+        # Activity
+        self.labelActivity.pack(side=TOP)
+        self.activityBox.pack(side=TOP, expand=True)
+        self.labelSpacing2.pack(side =TOP)
 
-        self.labelStatus = Label(self.popupFrame, text="Status       ", padx=2, font= self.controller.titlefont, highlightbackground="black", highlightthickness=2)
-        self.labelStatus.grid(row=3, column=0, sticky=W)
-        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired'], textvariable=self.status)
-        self.statusBox.grid(row=3, column=0)
+        # Category
+        self.labelCategory.pack(side=TOP)
+        self.categoryBox.pack(side=TOP, expand=True)
+        self.labelSpacing3.pack(side =TOP)
 
-        self.submitButton = Button(self.popupFrame, text="Kirim", command = self.tambahKegiatan)
-        self.submitButton.grid(row = 6, column = 0, pady = 1, sticky = W)
+        # Deadline
+        self.labelDeadline.pack(side=TOP)
+        self.deadlineBox.pack(side=TOP, expand=True)
+        self.labelSpacing4.pack(side =TOP)
 
-        self.cancelButton = Button(self.popupFrame, text="Batal", command=self.popUp.destroy)
-        self.cancelButton.grid(row = 6, column = 3, pady = 10)
+        # Status
+        self.labelStatus.pack(side=TOP)
+        self.statusBox.pack(side=TOP, expand=True)
+        self.labelSpacing5.pack(side =TOP)
+
+        # Button
+        self.submitButton.pack(side=TOP, expand=True)
 
     def popupCategory(self):
         #========================Make The Pop Up Windows Position At The Center=================================#
@@ -190,26 +243,27 @@ class dashboardPage(tk.Frame):
         self.popUp.title("Add Category")
         self.popUp.geometry(f'+{win_x}+{win_y}')
         self.popUp.resizable(0,0)
-
-        self.popUp.columnconfigure(0, weight=1)
-        self.popUp.columnconfigure(1, weight=3)
-
-
+        #========================FRAME==========================================================================#
         self.popupFrame = Frame(self.popUp, highlightbackground="black", highlightthickness=2)
         self.popupFrame.pack(ipadx=50, ipady=50, pady=50)
         #========================widget================#
-        self.labelTitle = Label(self.popupFrame, text = "Tambah Kategori", font=self.popupFont, highlightbackground="black", highlightthickness=2)
-        self.labelKategori= Label(self.popupFrame, text="Nama Kategori", font= self.controller.titlefont, highlightbackground="black", highlightthickness=2, padx=5)
-        self.categoryBox = Entry(self.popupFrame, textvariable=self.categoryID, width= 30)
-        self.submitButton = Button(self.popupFrame, text="Kirim")
+        self.labelTitle = Label(self.popupFrame, text = "Tambah Kategori", font=self.popupFont)
+        self.labelSpacing = Label(self.popupFrame)
+        self.labelSpacing1 = Label(self.popupFrame)
+        self.labelKategori= Label(self.popupFrame, text="Nama Kategori", font= self.controller.titlefont)
+        self.labelSpacing2 = Label(self.popupFrame)
+        self.categoryBox = Entry(self.popupFrame, textvariable=self.categoryName, width= 30)
+        self.labelSpacing3 = Label(self.popupFrame)
+        self.submitButton = Button(self.popupFrame, text="Kirim", command=self.tambahKategori)
         #===========POSITIONING=====================#
-        # self.labelTitle.grid(row = 0, column = 1)
         self.labelTitle.pack(side=TOP, anchor=CENTER)
-        # self.labelKategori.grid(row = 3, column = 0, sticky = E, padx = 5)
-        self.labelKategori.pack(side=LEFT)
-        # self.categoryBox.grid(row=3, column = 1, sticky = W, padx=5)
-        self.categoryBox.pack(side=LEFT, expand=True)
-        self.submitButton.pack(side=BOTTOM, anchor=CENTER, fill=X, expand=True)
+        self.labelSpacing.pack(side =TOP)
+        self.labelSpacing1.pack(side =TOP)
+        self.labelKategori.pack(side=TOP)
+        self.labelSpacing2.pack(side =TOP)
+        self.categoryBox.pack(side=TOP)
+        self.labelSpacing3.pack(side =TOP)
+        self.submitButton.pack(side=TOP)
 
     def popUpFilter(self):
         #========================Make The Pop Up Windows Position At The Center=================================#
@@ -223,23 +277,36 @@ class dashboardPage(tk.Frame):
 
         #=======================Pop Up Initialization==========================================================#
         self.popUp = Toplevel(self)
-        self.popUp.title("Add Category")
+        self.popUp.title("Filter")
         self.popUp.geometry(f'+{win_x}+{win_y}')
         self.popUp.resizable(0,0)
+        #===========================FRAME=========================================================#
 
-        self.popUp.columnconfigure(0, weight=1)
-        self.popUp.columnconfigure(1, weight=3)
-
-        #======================================================================================================#
-
-        self.pFrame = Frame(self.popUp, highlightbackground="black", highlightthickness=2)
-        self.pFrame.pack(ipadx=50, ipady=50, pady=50)
-
-        self.p1Frame = Frame(self.popUp, bg="blue")
-        self.p1Frame.pack(side = LEFT)
-
-        self.p2Frame = Frame(self.popUp, bg="red")
-        self.p2Frame.pack(side=RIGHT)
+        self.popupFrame = Frame(self.popUp, highlightbackground="black", highlightthickness=2)
+        self.popupFrame.pack(ipadx=50, ipady=50, pady=50)
+        #========================widget================#
+        self.labelTitle = Label(self.popupFrame, text = "Filter", font=self.popupFont)
+        self.labelSpacing = Label(self.popupFrame)
+        self.labelSpacing1 = Label(self.popupFrame)
+        self.labelStatus= Label(self.popupFrame, text="Status", font= self.controller.titlefont, padx=5)
+        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired'], textvariable=self.status, width = 30)
+        self.labelSpacing2 = Label(self.popupFrame)
+        self.labelKategori= Label(self.popupFrame, text="Kategori", font= self.controller.titlefont, padx=5)
+        self.kategoriBox = ttk.Combobox(self.popupFrame, values=self.listCategory, textvariable=self.categoryName, width = 30)
+        self.labelSpacing3 = Label(self.popupFrame)
+        self.submitButton = Button(self.popupFrame, text="Kirim", command=self.filterToDoList)
+        
+        #===========POSITIONING=====================#
+        self.labelTitle.pack(side=TOP, anchor=CENTER)
+        self.labelSpacing.pack(side =TOP)
+        self.labelSpacing1.pack(side =TOP)
+        self.labelStatus.pack(side=TOP)
+        self.statusBox.pack(side=TOP, expand=True)
+        self.labelSpacing2.pack(side =TOP)
+        self.labelKategori.pack(side=TOP)
+        self.kategoriBox.pack(side=TOP, expand=True)
+        self.labelSpacing3.pack(side =TOP)
+        self.submitButton.pack(side=TOP, expand=True)
 
 
 
