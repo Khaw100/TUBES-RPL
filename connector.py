@@ -109,6 +109,9 @@ class connector():
             print("Failed!")
         return data
 
+    def addCategory(self):
+        
+        pass
 
 # DRIVER CODE ----------------------------------------------------------------
 ## Initialization
@@ -116,14 +119,18 @@ cn1 = connector("localhost", "wipiii", "miscrit10", "rpl")
 cn1.openConnection()
 
 ## Add Activity --------------------------------------------------------------
-# cn1.addActivity(1,"Futsal", "ongoing", "2020--10",1)
+# cn1.addActivity(2,"Basket", "expired", "2020-1-10",1)
 a = cn1.allToDoList()
-print(a)
+print(a[0][4])
 
+# print(len(a))
+
+# for i in a:
+#     print(i[2])
 ## Del Activity --------------------------------------------------------------
-cn1.deleteKegiatan(1)
-b = cn1.allToDoList()
-print(b)
+# cn1.deleteKegiatan(1)
+# b = cn1.allToDoList()
+# print(b)
 
 
 
@@ -142,7 +149,7 @@ print(b)
 
 # print(a[0][2].year)
 
-print("-----------------------------")
+# print("-----------------------------")
 # query = f"DELETE FROM Kegiatan WHERE idKegiatan = 1"
 # cn1._session.execute(query)
 # cn1._connection.commit()
