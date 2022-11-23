@@ -30,6 +30,7 @@ class dashboardPage(tk.Frame):
         #========================#==============#========#
         self.dctCategory = {} 
         self.listCategory = []
+        self.empty = ['']
         self.dbconnector = connector("localhost", "root", "password", "rpl")
         self.dbconnector.openConnection()
 
@@ -403,7 +404,7 @@ class dashboardPage(tk.Frame):
         self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired', 'done',''], textvariable=self.status, width = 30)
         self.labelSpacing2 = Label(self.popupFrame)
         self.labelKategori= Label(self.popupFrame, text="Kategori", font= self.controller.titlefont, padx=5)
-        self.kategoriBox = ttk.Combobox(self.popupFrame, values=self.listCategory, textvariable=self.categoryName, width = 30)
+        self.kategoriBox = ttk.Combobox(self.popupFrame, values=self.listCategory + self.empty, textvariable=self.categoryName, width = 30)
         self.labelSpacing3 = Label(self.popupFrame)
         self.labelBatasWaktu= Label(self.popupFrame, text="BatasWaktu", font= self.controller.titlefont, padx=5)
         self.deadlineBox = ttk.Combobox(self.popupFrame, values=['Today', ''], textvariable=self.deadline, width = 30)

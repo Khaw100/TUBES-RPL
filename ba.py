@@ -13,3 +13,8 @@
 # for i in range(len(dct)):
 #     print(i)
 #     print(dct[i])
+
+a = ['']
+b = ['s']
+t = a + b
+print(t)
