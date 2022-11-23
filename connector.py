@@ -113,7 +113,7 @@ class connector():
         return data
 
     def filterBatasWaktuToday(self):
-        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan WHERE YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE())"
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE())"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -139,7 +139,7 @@ class connector():
         return data
 
     def filterStatusBatasWaktu(self, selectedStatus):
-        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedStatus}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE()))"
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedStatus}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE())"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -148,7 +148,7 @@ class connector():
         return data
 
     def filterKategoriBatasWaktu(self, selectedKategori):
-        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisKategori = '{selectedKategori}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE()))"
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisKategori = '{selectedKategori}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE())"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -157,7 +157,7 @@ class connector():
         return data
     
     def filterStatusKategoriBatasWaktu(self, selectedKategori, selectedStatus):
-        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedStatus}' AND jenisKategori = '{selectedKategori}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE()))"
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedStatus}' AND jenisKategori = '{selectedKategori}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE())"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
