@@ -28,12 +28,15 @@ class dashboardPage(tk.Frame):
 
 
         #========================#==============#========#
-        self.listCategory = [] 
+        self.dctCategory = {} 
+        self.listCategory = []
         self.dbconnector = connector("localhost", "root", "password", "rpl")
         self.dbconnector.openConnection()
 
         a = self.dbconnector.allCategory()
         for i in range (len(a)):
+            key = a[i][0]
+            self.dctCategory[key] = a[i][1]
             self.listCategory.append(a[i][1])
         #=========================================================================FRAME=====================================================================================#
         # Central Frame
@@ -94,6 +97,7 @@ class dashboardPage(tk.Frame):
         self.dbconnector = connector("localhost", "root", "password", "rpl")
         self.dbconnector.openConnection()
         todayData = self.dbconnector.allToDoList()
+        print(todayData)
         for row in todayData:
             self.todolistTable.insert('', END, values=row)
 
@@ -121,25 +125,75 @@ class dashboardPage(tk.Frame):
         for row in categoryData:
             self.todolistTable.insert('', END, values=row)
 
+    def fetchStatusKategoriData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        categoryData = self.dbconnector.filterStatusKategori(self.status.get(), self.categoryName.get())
+        for row in categoryData:
+            self.todolistTable.insert('', END, values=row)
+
+    def fetchStatusBatasWaktuData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        categoryData = self.dbconnector.filterStatusBatasWaktu(self.status.get())
+        for row in categoryData:
+            self.todolistTable.insert('', END, values=row)
+        
+    def fetchKategoriBatasWaktuData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        categoryData = self.dbconnector.filterStatusBatasWaktu(self.categoryName.get())
+        for row in categoryData:
+            self.todolistTable.insert('', END, values=row)
+    
+    def fetchStatusKategoriBatasWaktuData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        categoryData = self.dbconnector.filterStatusKategoriBatasWaktu(self.categoryName.get(), self.status.get())
+        for row in categoryData:
+            self.todolistTable.insert('', END, values=row)
+    
+    def fetchBatasWaktuTodayData(self):
+        self.todolistTable.delete(*self.todolistTable.get_children())
+        self.dbconnector = connector("localhost", "root", "password", "rpl")
+        self.dbconnector.openConnection()
+        categoryData = self.dbconnector.filterBatasWaktuToday()
+        for row in categoryData:
+            self.todolistTable.insert('', END, values=row)
+
     def tambahKegiatan(self):
-        try:
-            if self.activityName.get() == "":
-                messagebox.showerror("Error","All fields are required")
-            else:
-                self.dbconnector = connector("localhost", "root", "password", "rpl")
-                self.dbconnector.openConnection()
-                data = self.dbconnector.allToDoList()
-                actID = len(data)+1
-                for i in range(len(self.listCategory)):
-                    if self.categoryName == self.listCategory[i][1]:
-                        self.categoryID = self.listCategory[i][0]
-                print("categoryID:", self.categoryID.get())
-                self.dbconnector.addActivity(actID, self.activityName.get(), self.status.get(), self.deadline.get(), self.categoryID.get())
-        except:
-            messagebox.showerror("Error", "Error Occured")
+        # try:
+        if self.activityName.get() == "":
+            messagebox.showerror("Error","All fields are required")
+        else:
+            self.dbconnector = connector("localhost", "root", "password", "rpl")
+            self.dbconnector.openConnection()
+            data = self.dbconnector.allToDoList()
+            actID = len(data)+1
+
+            for i in range(len(self.listCategory)):
+                if self.categoryName.get() == self.listCategory[i]:
+                    self.categoryID = i
+
+            print(i)
+            print(self.listCategory[i])
+            print("--------------------------------")
+            print("categoryID:", self.categoryID)
+            print("categooryNameDARIGET:", self.categoryName.get())
+            print("categooryNameDARILIST:", self.listCategory[self.categoryID])
+            print("NamaKegiatan", self.activityName.get())
+            print("Status:", self.status.get())
+            print("Deadline:", self.deadline.get())
+            print("--------------------------------")
+            self.dbconnector.addActivity(actID, self.activityName.get(), self.status.get(), self.deadline.get(), self.categoryID)
+        # except:
+        #     messagebox.showerror("Error", "Error Occured")
         self.fetchAllData()
         self.activityName.set("")
-        self.categoryID.set("")
         self.categoryName.set("")
         self.status.set("")
         self.deadline.set("")
@@ -153,21 +207,37 @@ class dashboardPage(tk.Frame):
                 self.dbconnector = connector("localhost", "root", "password", "rpl")
                 self.dbconnector.openConnection()
                 data = self.dbconnector.allCategory()
-                catID = len(data)
-                print(catID)
+                if len(data) == 0:
+                    catID = 0
+                else:
+                    catID = len(data)
                 self.dbconnector.addCategory(catID, self.categoryName.get())
         except:
             messagebox.showerror("Error", "Error Occured")
-        # self.listCategory.append(self.categoryName.get())
+        self.dctCategory[catID] = self.categoryName.get()
+        self.listCategory.append(self.categoryName.get())
         self.categoryName.set("")
         self.popUp.destroy()
 
     def filterToDoList(self):
         try:
-            if self.status.get() != "" and self.categoryName.get() == "":
-                self.fetchStatusData()
-            elif self.status.get() == "" and self.categoryName.get() != "":
-                self.fetchCategoryData()
+            if self.status.get() != "":
+                if self.categoryName.get() == "" and self.deadline.get() == "":
+                    self.fetchStatusData()
+                elif self.categoryName.get() != "" and self.deadline.get() == "":
+                    self.fetchStatusKategoriData()
+                elif self.categoryName.get() == "" and self.deadline.get() == "Today":
+                    self.fetchStatusBatasWaktuData()
+                elif self.categoryName.get() != "" and self.deadline.get() == "Today":
+                    self.fetchStatusKategoriBatasWaktuData()
+            elif self.status.get() == "":
+                if self.categoryName.get() != "" and self.deadline.get() == "":
+                    self.fetchCategoryData()
+                elif self.categoryName.get() != "" and self.deadline.get() == "Today":
+                    self.fetchKategoriBatasWaktuData()
+                elif self.categoryName.get() == "" and self.deadline.get() == "Today":
+                    self.fetchBatasWaktuTodayData()
+
         except:
             messagebox.showerror("Error", "Error Occured")
 
@@ -330,13 +400,13 @@ class dashboardPage(tk.Frame):
         self.labelSpacing = Label(self.popupFrame)
         self.labelSpacing1 = Label(self.popupFrame)
         self.labelStatus= Label(self.popupFrame, text="Status", font= self.controller.titlefont, padx=5)
-        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired', 'done'], textvariable=self.status, width = 30)
+        self.statusBox = ttk.Combobox(self.popupFrame, values=['idle', 'ongoing', 'expired', 'done',''], textvariable=self.status, width = 30)
         self.labelSpacing2 = Label(self.popupFrame)
         self.labelKategori= Label(self.popupFrame, text="Kategori", font= self.controller.titlefont, padx=5)
         self.kategoriBox = ttk.Combobox(self.popupFrame, values=self.listCategory, textvariable=self.categoryName, width = 30)
         self.labelSpacing3 = Label(self.popupFrame)
         self.labelBatasWaktu= Label(self.popupFrame, text="BatasWaktu", font= self.controller.titlefont, padx=5)
-        self.deadlineBox = ttk.Combobox(self.popupFrame, values=['HariIni'], textvariable=self.deadline, width = 30)
+        self.deadlineBox = ttk.Combobox(self.popupFrame, values=['Today', ''], textvariable=self.deadline, width = 30)
         self.labelSpacing4 = Label(self.popupFrame)
         self.submitButton = Button(self.popupFrame, text="Kirim", command=self.filterToDoList)
         

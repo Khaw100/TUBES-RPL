@@ -19,10 +19,8 @@ class mainFrame(tk.Tk):
         self.title("SIBUKIN")
         image_icon = PhotoImage(file="image/list.png")
         self.iconphoto(False, image_icon)
-        # self.geometry("800x800")
         self.container = tk.Frame()
         self.container.pack(side='top', fill='both',expand=True)
-        # self.container.grid(row = 0, column = 0, sticky ="nesw")
         self.container.grid_rowconfigure(0, weight = 1)
         self.container.grid_columnconfigure(0, weight = 1)
 

@@ -36,7 +36,7 @@ class connector():
         self._session.close()
 
     def allToDoList(self):
-        statement = "SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan INNER JOIN Kategori"
+        statement = "SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -45,7 +45,7 @@ class connector():
         return data
     
     def todayToDoList(self):
-        statement = "SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan INNER JOIN Kategori WHERE batasWaktu = DATE('now') AND jenisStatus = 'ongoing'"
+        statement = "SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE batasWaktu = DATE('now') AND jenisStatus = 'ongoing'"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -61,7 +61,6 @@ class connector():
         except:
             print("Failed!")
         return data
-
 
     def updateStatusOnGOing(self, activityID):
         statement = f"UPDATE Kegiatan SET status = 'ongoing' WHERE = {activityID}"
@@ -95,9 +94,8 @@ class connector():
         except:
             print("Failed!")
     
-
     def filterKategori(self, selectedKategori):
-        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan INNER JOIN Kategori WHERE jenisKategori = '{selectedKategori}'"
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisKategori = '{selectedKategori}'"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -106,7 +104,7 @@ class connector():
         return data
 
     def filterStatus(self,selectedstatus):
-        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan INNER JOIN Kategori WHERE jenisStatus = '{selectedstatus}'"
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedstatus}'"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -114,13 +112,8 @@ class connector():
             print("Failed!")
         return data
 
-# Hari ini 
-# Minggu ini 
-# Semua
     def filterBatasWaktuToday(self):
-        today = datetime.now()
-        strToday = f"{today.year}-{today.month}-{today.day}"
-        statement = f"SELECT * FROM Kegiatan WHERE batasWaktu = DATE('now') AND status = 'On Going' "
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan WHERE YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE())"
         try:
             self._session.execute(statement)
             data = self._session.fetchall()
@@ -136,15 +129,52 @@ class connector():
         except:
             print("Failed!")
 
+    def filterStatusKategori(self, selectedStatus, selectedKategori):
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedStatus}' AND jenisKategori = '{selectedKategori}'"
+        try:
+            self._session.execute(statement)
+            data = self._session.fetchall()
+        except:
+            print("Failed!")
+        return data
+
+    def filterStatusBatasWaktu(self, selectedStatus):
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedStatus}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE()))"
+        try:
+            self._session.execute(statement)
+            data = self._session.fetchall()
+        except:
+            print("Failed!")
+        return data
+
+    def filterKategoriBatasWaktu(self, selectedKategori):
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisKategori = '{selectedKategori}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE()))"
+        try:
+            self._session.execute(statement)
+            data = self._session.fetchall()
+        except:
+            print("Failed!")
+        return data
+    
+    def filterStatusKategoriBatasWaktu(self, selectedKategori, selectedStatus):
+        statement = f"SELECT idKegiatan, namaKegiatan, batasWaktu, jenisStatus, jenisKategori FROM Kegiatan NATURAL JOIN Kategori WHERE jenisStatus = '{selectedStatus}' AND jenisKategori = '{selectedKategori}' AND YEAR(batasWaktu) = YEAR(CURDATE()) AND MONTH(batasWaktu) = MONTH(CURDATE()) AND DAY(batasWaktu) = DAY(CURDATE()))"
+        try:
+            self._session.execute(statement)
+            data = self._session.fetchall()
+        except:
+            print("Failed!")
+        return data
 # DRIVER CODE ----------------------------------------------------------------
 ## Initialization
-cn1 = connector("localhost", "root", "password", "rpl")
-cn1.openConnection()
+# cn1 = connector("localhost", "root", "password", "rpl")
+# cn1.openConnection()
 
 ## Add Activity --------------------------------------------------------------
 # cn1.addActivity(3,"Bowling", "expired", "2020-1-10",1)
-a = cn1.todayToDoList()
-print(a)
+# a = cn1.allCategory()
+# print(a[0][1])
+# print(a[0][0])
+# print(len(a))
 
 # print(len(a))
 
